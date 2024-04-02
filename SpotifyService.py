@@ -13,7 +13,7 @@ class SpotifyService:
 
     def _init_spotify_client(self) -> spotipy.Spotify:
         auth_manager = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET,
-                                    redirect_uri=SPOTIPY_REDIRECT_URI, scope=self.scope)
+                                    redirect_uri=SPOTIPY_REDIRECT_URI, scope=self.scope, cache_path=".cache")
         return spotipy.Spotify(auth_manager=auth_manager)
 
     def fetch_and_refresh_tracks(self):
