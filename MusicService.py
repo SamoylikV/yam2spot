@@ -2,15 +2,17 @@ from yandex_music import Client
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
 from typing import List, Dict
-from constants import YA_TOKEN, SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, DESYNCHRONIZE
+from constants import YA_TOKEN, SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI
 from utilities import TrackManager, LoggerSetup, get_diff
 
+
 class MusicService:
-    def __init__(self):
+    def __init__(self, desynchronize: bool = False):
         self.ya_client = Client(YA_TOKEN).init()
         self.sp_client = self._init_spotify_client()
         self.logger = LoggerSetup.setup_logger()
-        self.desynchronize = DESYNCHRONIZE
+        self.desynchronize = desynchronize
+
     def _init_spotify_client(self) -> spotipy.Spotify:
         auth_manager = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET,
                                     redirect_uri=SPOTIPY_REDIRECT_URI, scope='user-library-modify', cache_path=".cache")
