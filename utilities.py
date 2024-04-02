@@ -3,27 +3,29 @@ import os
 from typing import List, Dict
 import logging
 import colorlog
+from fuzzywuzzy import fuzz
 
 
 class LoggerSetup:
     @staticmethod
     def setup_logger() -> logging.Logger:
-        handler = colorlog.StreamHandler()
-        handler.setFormatter(colorlog.ColoredFormatter(
-            '%(log_color)s%(levelname)-8s%(reset)s %(white)s%(message)s',
-            reset=True,
-            log_colors={
-                'DEBUG': 'cyan',
-                'INFO': 'green',
-                'WARNING': 'yellow',
-                'ERROR': 'red',
-                'CRITICAL': 'red,bg_white',
-            },
-            style='%'
-        ))
         logger = colorlog.getLogger('MusicLogger')
-        logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
+        if not logger.handlers:
+            handler = colorlog.StreamHandler()
+            handler.setFormatter(colorlog.ColoredFormatter(
+                '%(log_color)s%(levelname)-8s%(reset)s %(white)s%(message)s',
+                reset=True,
+                log_colors={
+                    'DEBUG': 'cyan',
+                    'INFO': 'green',
+                    'WARNING': 'yellow',
+                    'ERROR': 'red',
+                    'CRITICAL': 'red,bg_white',
+                },
+                style='%'
+            ))
+            logger.setLevel(logging.INFO)
+            logger.addHandler(handler)
         return logger
 
 
@@ -32,8 +34,12 @@ class TrackManager:
         self.filename = filename
         self.logger = LoggerSetup.setup_logger()
 
-    def track_exists(self, artist_name: str, track_name: str, tracks: List[Dict]) -> bool:
-        return any(track for track in tracks if track['artist'] == artist_name and track['track_name'] == track_name)
+    @staticmethod
+    def track_exists(artist_name: str, track_name: str, tracks: List[Dict]) -> bool:
+        for track in tracks:
+            if track['artist'] == artist_name and track['track_name'] == track_name:
+                return True
+        return False
 
     def load_tracks(self) -> List[Dict]:
         if os.path.exists(self.filename):
@@ -89,12 +95,17 @@ class TrackManager:
 
 def get_diff(tracks1: List[Dict], tracks2: List[Dict]) -> List[Dict]:
     diff = []
-    for track in tracks1:
-        track['artist'] = track['artist'].lower()
-        track['track_name'] = track['track_name'].lower()
-        for track_ in tracks2:
-            track_['artist'] = track_['artist'].lower()
-            track_['track_name'] = track_['track_name'].lower()
-            if track['artist'] == track_['artist'] and track['track_name'] == track_['track_name']:
-                diff.append(track)
+
+    for track1 in tracks1:
+        track_name1_lower = track1['track_name'].lower()
+        is_unique = True
+        for track2 in tracks2:
+            track_name2_lower = track2['track_name'].lower()
+            track_name_similarity = fuzz.ratio(track_name1_lower, track_name2_lower)
+            if track_name_similarity >= 70:
+                is_unique = False
+                break
+        if is_unique:
+            diff.append(track1)
+
     return diff

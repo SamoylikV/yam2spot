@@ -21,13 +21,14 @@ class MusicService:
         yandex_tracks = TrackManager('yandex_tracks.json').load_tracks()
         spotify_tracks = TrackManager('spotify_tracks.json').load_tracks()
 
+        self.logger.info("Синхронизация треков...")
         spotify_like = get_diff(yandex_tracks, spotify_tracks)
         yandex_like = get_diff(spotify_tracks, yandex_tracks)
-
-        # self._add_to_spotify(spotify_like)
-        # self._add_to_yandex(yandex_like)
-        self.logger.info(len(spotify_like))
-        self.logger.info(len(yandex_like))
+        self.logger.info(f"Добавление {len(spotify_like)} треков в Spotify...")
+        self._add_to_spotify(spotify_like)
+        self.logger.info(f"Добавление {len(yandex_like)} треков в Яндекс Музыку...")
+        self._add_to_yandex(yandex_like)
+        self.logger.info("Синхронизация завершена.")
 
     def _add_to_spotify(self, tracks: List[Dict]):
         for track in tracks:
@@ -47,4 +48,5 @@ class MusicService:
                 track_id = search_result.tracks[0].id
                 self.ya_client.users_likes_tracks_add(track_id)
             except IndexError:
-                self.logger.warning(f"Трек {track['track_name']} исполнителя {track['artist']} не найден на Яндекс Музыке.")
+                self.logger.warning(
+                    f"Трек {track['track_name']} исполнителя {track['artist']} не найден на Яндекс Музыке.")

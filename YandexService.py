@@ -14,5 +14,4 @@ class YandexService:
         track_manager = TrackManager(filename)
         liked_tracks = self.client.users_likes_tracks().fetchTracks()
         track_manager.refresh_tracks(liked_tracks, 'yandex')
-
         self.logger.info("Треки Яндекс Музыки обновлены.")
